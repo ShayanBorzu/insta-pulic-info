@@ -4,6 +4,7 @@ from .utils import get_instagram_profile
 
 
 
+
 def profile_view(request, username):
     # Read credentials from GET or POST
     login_user = (
@@ -22,7 +23,7 @@ def profile_view(request, username):
     return JsonResponse(data)
 
 def ipapi_view(request, ip=None):
-
+    try:
         response = requests.get(f"https://ipapi.co/{ip}/json/")
         response.raise_for_status()  # Raise an error for bad responses
         data = response.json()
