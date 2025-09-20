@@ -11,14 +11,16 @@ def image_url_to_base64(url):
     else:
         raise Exception(f"Failed to fetch image: {response.status_code}")
 
-def profile_view(request, username):
-    login_user = request.GET.get("login_user") or request.POST.get("login_user")
-    login_pass = request.GET.get("login_pass") or request.POST.get("login_pass")
+def profile_view(request, username, login_user='"scornfulporpoise', login_pass="@123qweasd"):
+    login_user  = request.GET.get("login_user")
+    login_pass  = request.GET.get("login_pass")
+    data = get_instagram_profile(username)
+    data["login"] = True
     
-    data = get_instagram_profile(username, login_user, login_pass)
-
     if "error" in data:
-        return JsonResponse(data, status=400)
+        data = get_instagram_profile(username, login_user, login_pass)
+        if "error" in data:
+            return JsonResponse(data, status=400)
 
     # Add base64 version of profile picture
     profile_pic_url = data.get("profile_pic_url")
