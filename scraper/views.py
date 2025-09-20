@@ -15,10 +15,12 @@ def profile_view(request, username, login_user='"scornfulporpoise', login_pass="
     login_user  = request.GET.get("login_user")
     login_pass  = request.GET.get("login_pass")
     data = get_instagram_profile(username)
-    data["login"] = True
+    data["login"] = False
     
     if "error" in data:
         data = get_instagram_profile(username, login_user, login_pass)
+        data["login"] = True
+        
         if "error" in data:
             return JsonResponse(data, status=400)
 
