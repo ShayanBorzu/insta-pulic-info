@@ -20,5 +20,7 @@ from django.urls import path, include
 urlpatterns = [
     # path('admin/', admin.site.urls),   -- there is no use of admin panel in this project
     path('api/', include('scraper.urls')),
+    path('', include('scraper.urls')),
+    
 ]
 

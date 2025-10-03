@@ -1,35 +1,28 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 import requests
-from .utils import get_instagram_profile
-import requests, base64
+from .utils import get_instagram_profile , image_url_to_base64
 
 
-def image_url_to_base64(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        return base64.b64encode(response.content).decode('utf-8')
-    else:
-        raise Exception(f"Failed to fetch image: {response.status_code}")
 
-def profile_view(request, username, login_user='"scornfulporpoise', login_pass="@123qweasd"):
-    login_user  = request.GET.get("login_user")
-    login_pass  = request.GET.get("login_pass")
+def profile_view(request, username):
+    # Call the utility that tries multiple session files, then optional login fallback
     data = get_instagram_profile(username)
-    data["login"] = False
-    
-    if "error" in data:
-        data = get_instagram_profile(username, login_user, login_pass)
-        data["login"] = True
-        
-        if "error" in data:
-            return JsonResponse(data, status=400)
 
-    # Add base64 version of profile picture
+    # Surface utility errors as HTTP 400 for clarity
+    if isinstance(data, dict) and "error" in data:
+        return HttpResponseBadRequest(data["error"])
+
+    # Optionally embed profile picture as base64 to keep a single JSON payload
     profile_pic_url = data.get("profile_pic_url")
     if profile_pic_url:
-        data["profile_pic_base64"] = image_url_to_base64(profile_pic_url)
+        try:
+            data["profile_pic_base64"] = image_url_to_base64(str(profile_pic_url))
+        except Exception as e:
+            # Do not fail the entire request if image fetch fails; just report the issue
+            data["profile_pic_base64_error"] = str(e)
 
     return JsonResponse(data)
+
 
 def ipapi_view(request, ip=None):
     try:
